@@ -1,0 +1,91 @@
+import pandas as pd
+import numpy as np 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+
+!pip install quandl
+import quandl
+...
+
+
+Collecting quandl
+  Downloading Quandl-3.7.0-py2.py3-none-any.whl (26 kB)
+Requirement already satisfied: pandas>=0.14 in /usr/local/lib/python3.10/dist-packages (from quandl) (2.0.3)
+Requirement already satisfied: numpy>=1.8 in /usr/local/lib/python3.10/dist-packages (from quandl) (1.25.2)
+Requirement already satisfied: requests>=2.7.0 in /usr/local/lib/python3.10/dist-packages (from quandl) (2.31.0)
+Collecting inflection>=0.3.1 (from quandl)
+  Downloading inflection-0.5.1-py2.py3-none-any.whl (9.5 kB)
+Requirement already satisfied: python-dateutil in /usr/local/lib/python3.10/dist-packages (from quandl) (2.8.2)
+Requirement already satisfied: six in /usr/local/lib/python3.10/dist-packages (from quandl) (1.16.0)
+Requirement already satisfied: more-itertools in /usr/local/lib/python3.10/dist-packages (from quandl) (10.1.0)
+Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.10/dist-packages (from pandas>=0.14->quandl) (2023.4)
+Requirement already satisfied: tzdata>=2022.1 in /usr/local/lib/python3.10/dist-packages (from pandas>=0.14->quandl) (2024.1)
+Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests>=2.7.0->quandl) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/dist-packages (from requests>=2.7.0->quandl) (3.7)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests>=2.7.0->quandl) (2.0.7)
+Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests>=2.7.0->quandl) (2024.6.2)
+Installing collected packages: inflection, quandl
+Successfully installed inflection-0.5.1 quandl-3.7.0
+
+
+data=quandl.get('NSE/TATAMOTORS')
+data.head(10)
+....
+
+Open	High	Low	Last	Close	Total Trade Quantity	Turnover (Lacs)
+Date							
+2003-12-26	435.80	440.50	431.65	438.85	438.60	1534637.0	6714.66
+2003-12-29	441.00	449.70	441.00	448.40	447.80	2125952.0	9497.72
+2003-12-30	450.00	451.90	430.10	444.85	442.40	2683293.0	11894.85
+2003-12-31	446.00	459.30	443.55	452.10	452.05	4311596.0	19551.42
+2004-01-01	453.25	457.90	451.50	454.00	454.45	2077604.0	9457.51
+2004-01-02	458.00	460.35	454.05	457.95	456.40	1704790.0	7795.88
+2004-01-05	458.00	465.00	450.60	451.50	454.85	2141245.0	9767.85
+2004-01-06	460.00	465.00	448.50	450.25	454.45	2360145.0	10850.57
+2004-01-07	451.40	454.70	438.10	447.95	446.45	3766229.0	16707.04
+2004-01-08	449.00	466.95	449.00	465.90	464.75	1965051.0	9048.59
+
+
+plt.figure(figsize=(20,10))
+plt.plot(data['Close'],label='Closing price') 
+plt.plot(data['Open'],label='Opening price') 
+plt.show() 
+
+data['Open - Close']=data['Open']-data['Close']
+data['High - Low']=data['High']-data['Low']
+data=data.dropna()
+
+
+
+
+X=data[['Open - Close','High - Low']]
+X.head()
+
+
+Open - Close	High - Low
+Date		
+2003-12-26	-2.80	8.85
+2003-12-29	-6.80	8.70
+2003-12-30	7.60	21.80
+2003-12-31	-6.05	15.75
+2004-01-01	-1.20	6.40
+
+
+Y=np.where(data['Close'].shift(-1)>data['Close'],1,-1)
+Y
+
+from sklearn.model_selection import train_test_split
+X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.2,random_state=0)
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV # Import GridSearchCV
+
+params= {'C':10}
+lr=LogisticRegression(**params)
+lr.fit(X_train,Y_train)
+model=GridSearchCV(lr,param_grid=params)
+
